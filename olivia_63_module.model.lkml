@@ -3,23 +3,39 @@ connection: "lookerdata_publicdata_standard_sql"
 # include all the views
 include: "*.view"
 
-# include all the dashboards
-include: "*.dashboard"
+# # include all the dashboards
+# include: "*.dashboard"
 
 explore: trip {
+
+  access_filter: {
+    field: start_station.name
+    user_attribute: allowed_stations
+  }
 
   join: start_station {
     from: station
     type: left_outer
-    relationship: many_to_many
+    relationship: one_to_one
     sql_on: ${trip.from_station_id} = ${start_station.id} ;;
   }
   join: end_station  {
     from: station
     type: left_outer
-    relationship: many_to_many
+    relationship: one_to_one
     sql_on: ${trip.from_station_id} = ${end_station.id} ;;
   }
+  join: station_usage {
+    type: left_outer
+    relationship: one_to_many
+    sql_on: ${trip.bike_id} = ${station_usage.station_id};;
+  }
+}
+
+explore: station_usage {}
+
+explore: long_trips {
+  from: trips_extended
 }
 
 
@@ -48,11 +64,14 @@ explore: trip {
 
 # 2. put redshift performance block on demo
 #
-# 3. build a derived table to determine station usage. number of trips by station. tier stations [0,100,1000,5000,10000] trips
+# 3. build a derived table to determine station usage. number of trips by station.
+# tier stations [0,100,1000,5000,10000] trips
 #
-# 4. templated filter. for the pdt above give the station statistics a variable time window. Lets say an end user was to know number of trips  for each station for the last 30 days or 90 days.
+# 4. templated filter. for the pdt above give the station statistics a variable time window. Lets say an end user was to know
+#    number of trips for each station for the last 30 days or 90 days.
 #
-# 5. create an extended view of trips and put all the derived fields and measures on that view. create an extended view of trips and redefine trip.count as trips that lasted more than 1 minute
+# 5. create an extended view of trips and put all the derived fields and measures on that view.
+#    create an extended view of trips and redefine trip.count as trips that lasted more than 1 minute
 #
 # 6. add an access filter so that end users can only look at info for 1 station
 #

@@ -1,63 +1,29 @@
-view: trip {
-  sql_table_name: lookerdata.bike_trips.trip ;;
+include: "trip.view"
+view: trips_extended {
+  extends: [trip]
 
-  dimension: bike_id {
+  dimension: length_of_trip_minutes {
     type: number
-    sql: ${TABLE}.bike_id ;;
+    sql: DATEDIF(${start_time}, ${end_time}, minutes)  ;;
   }
 
-  dimension: trip_id {
+  measure: trip_count {
     type: number
-    primary_key: yes
-    sql: ${TABLE}.trip_id ;;
+    sql: COUNT(CASE WHEN ${length_of_trip_minutes} > 1 THEN 1 else null end);;
   }
 
-  dimension: from_station_id {
-    type: number
-    sql: ${TABLE}.from_station_id ;;
+  dimension: long_trips {
+    type: yesno
+    sql: ${length_of_trip_minutes} > 1 ;;
   }
 
-  dimension: gender {
-    type: string
-    sql: ${TABLE}.gender ;;
-  }
-
-  dimension: usertype {
-    type: string
-    sql: ${TABLE}.usertype ;;
-  }
-
-  dimension_group: start {
-    type: time
-    timeframes: [time, date, week, month, raw]
-    sql: ${TABLE}.start_time ;;
-  }
-
-  dimension_group: end {
-    type: time
-    timeframes: [time, date, week, month, raw]
-    sql: ${TABLE}.end_time ;;
-  }
-
-  dimension: trip_duration {
-    type: number
-    sql: ${TABLE}.trip_duration ;;
-  }
-
-  measure: trip_average_trip_duration_minutes {
-    type: average
-    sql: ${TABLE}.trip_duration ;;
-  }
-
-  dimension: trip_percent_non_member {
-    type: number
-    sql: COUNT(CASE WHEN (trip.usertype <> 'Member' OR trip.usertype IS NULL) THEN 1 ELSE NULL END))/(COUNT(*);;
-  }
-
-  measure: count_of_trips {
+  measure: count_long_trips {
     type: count
+    filters: {
+      field: long_trips
+      value: "yes"
+    }
   }
-
 }
 
 # SELECT
@@ -80,7 +46,6 @@ view: trip {
 # GROUP BY 1,2,3,4,5,6
 # ORDER BY 7 DESC
 # LIMIT 500
-
 
 
 # 2. put redshift performance block on demo
