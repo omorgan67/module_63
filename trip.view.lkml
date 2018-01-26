@@ -44,7 +44,7 @@ view: trip {
     sql: ${TABLE}.trip_duration ;;
   }
 
-  measure: trip_average_trip_duration_minutes {
+  measure: average_trip_duration_minutes {
     type: average
     sql: ${TABLE}.trip_duration ;;
   }
