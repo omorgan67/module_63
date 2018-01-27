@@ -4,6 +4,12 @@ view: station {
   dimension: name {
     type: string
     sql: ${TABLE}.name ;;
+
+    link: {
+      label: "{{ value }} Dashboard"
+      url: "/dashboards/2497?Station%20Name={{ value | url_encode }}"
+      icon_url: "http://looker.com/favicon.ico"
+    }
   }
 
   dimension: id {

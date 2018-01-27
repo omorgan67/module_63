@@ -3,15 +3,12 @@ connection: "lookerdata_publicdata_standard_sql"
 # include all the views
 include: "*.view"
 
-# # include all the dashboards
-# include: "*.dashboard"
-
 explore: trip {
 
-  access_filter: {
-    field: start_station.name
-    user_attribute: allowed_stations
-  }
+#   access_filter: {
+#     field: start_station.name
+#     user_attribute: allowed_stations
+#   }
 
   join: start_station {
     from: station

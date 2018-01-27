@@ -1,17 +1,18 @@
 # build a derived table to determine station usage. number of trips by station.
 # tier stations [0,100,1000,5000,10000] trips
 
+
 view: station_usage {
   derived_table: {
     sql: SELECT station.name AS station_name,
-                COUNT(DISTINCT trip.trip_id) AS number_of_trips
-          FROM trip LEFT JOIN station ON trip.to_station_id = station.id
-          WHERE {% condition date %} station.start_time {% endcondition %}
-          GROUP BY 1
+                COUNT(DISTINCT trip.trip_id) AS number_of_trips,
+                station.station_id AS station_id
+          FROM lookerdata.bike_trips.trip AS trip LEFT JOIN lookerdata.bike_trips.station AS station ON trip.to_station_id = station.station_id
+          WHERE {% condition date %} trip.start_time {% endcondition %}
+                AND {% condition gender %} trip.gender {% endcondition %}
+          GROUP BY 1,3
           ORDER BY 2 DESC;;
   }
-
-# {% condition gender_filter %} trip.gender {% endcondition %}
 
   dimension: station_name {
     type: string
@@ -28,9 +29,10 @@ view: station_usage {
     type: date
   }
 
-  filter: gender_filter {
+  filter: gender {
     type: string
-    suggestions: ["female", "male", "other"]
+    suggest_dimension: trip.gender
+    suggest_explore: trip
   }
 
   dimension: number_of_trips {
@@ -38,57 +40,44 @@ view: station_usage {
     sql: ${TABLE}.number_of_trips ;;
   }
 
-  dimension:  station_tiers {
+  dimension:  station_status {
     tiers: [0,100,1000,5000,10000]
     type: tier
     sql: ${number_of_trips} ;;
+    html: <div style="color: black; background-color: {{ station_colors }}; font-size:100%; text-align:center">{{ station_colors }}</div>;;
   }
 
   dimension: station_colors {
-    hidden: yes
     case: {
       when: {
-        label: "Red"
-        sql: ${station_tiers} = 0 ;;
-      }
-      when: {
-        label: "Orange"
-        sql: ${station_tiers} <= 100 ;;
-      }
-      when: {
-        label: "Yellow"
-        sql: ${station_tiers} <= 1000 ;;
+        label: "Blue"
+        sql: ${number_of_trips} >= 10000 ;;
       }
       when: {
         label: "Green"
-        sql: ${station_tiers} <= 5000 ;;
+        sql: ${number_of_trips} >= 5000 ;;
       }
       when: {
-        label: "Blue"
-        sql: ${station_tiers} <= 10000 ;;
+        label: "Yellow"
+        sql: ${number_of_trips} >= 1000 ;;
+      }
+      when: {
+        label: "Orange"
+        sql: ${number_of_trips} >= 100 ;;
+      }
+      when: {
+        label: "Red"
+        sql: ${number_of_trips} >= 0 ;;
+      }
+      when: {
+        label: "Pink"
+        sql: ${number_of_trips} < 0 ;;
       }
       else: "Unknown"
     }
   }
 
-  dimension: station_status {
-    sql: ${TABLE}.station_colors ;;
-    html:
-    {% if value == 'Red' %}
-      <p style="color: black; background-color: red; font-size:100%; text-align:center">{{ rendered_value }}</p>
-    {% elsif value == 'Orange' %}
-      <p style="color: black; background-color: orange; font-size:100%; text-align:center">{{ rendered_value }}</p>
-    {% elsif value == 'Yellow' %}
-      <p style="color: black; background-color: yellow; font-size:100%; text-align:center">{{ rendered_value }}</p>
-    {% elsif value == 'Green' %}
-      <p style="color: black; background-color: green; font-size:100%; text-align:center">{{ rendered_value }}</p>
-    {% else %}
-      <p style="color: black; background-color: blue; font-size:100%; text-align:center">{{ rendered_value }}</p>
-    {% endif %}
-;;
-  }
 }
-
 # SELECT
 #
 # end_station.name  AS end_station_name,

@@ -12,6 +12,22 @@ view: trip {
     sql: ${TABLE}.trip_id ;;
   }
 
+ dimension: to_station_name {
+    type: string
+    sql: ${TABLE}.to_station_name ;;
+
+  link: {
+    label: "{{ value }} Dashboard"
+    url: "/dashboards/2495?Station%20Name={{ value }}"
+    icon_url: "http://looker.com/favicon.ico"
+  }
+}
+
+  dimension: from_station_name {
+    type: string
+    sql: ${TABLE}.from_station_name ;;
+  }
+
   dimension: from_station_id {
     type: number
     sql: ${TABLE}.from_station_id ;;
@@ -80,7 +96,6 @@ view: trip {
 # GROUP BY 1,2,3,4,5,6
 # ORDER BY 7 DESC
 # LIMIT 500
-
 
 
 # 2. put redshift performance block on demo
